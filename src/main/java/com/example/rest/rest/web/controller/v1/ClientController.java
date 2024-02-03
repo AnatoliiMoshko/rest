@@ -1,5 +1,6 @@
 package com.example.rest.rest.web.v1;
 
+import com.example.rest.rest.exception.EntityNotFoundException;
 import com.example.rest.rest.mapper.v1.ClientMapper;
 import com.example.rest.rest.model.Client;
 import com.example.rest.rest.service.ClientService;

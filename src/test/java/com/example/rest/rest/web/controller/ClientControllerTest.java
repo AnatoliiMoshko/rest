@@ -2,6 +2,7 @@ package com.example.rest.rest.web.controller;
 
 import com.example.rest.rest.AbstractTestController;
 import com.example.rest.rest.StringTestUtils;
+import com.example.rest.rest.exception.EntityNotFoundException;
 import com.example.rest.rest.mapper.v1.ClientMapper;
 import com.example.rest.rest.model.Client;
 import com.example.rest.rest.model.Order;
@@ -10,14 +11,19 @@ import com.example.rest.rest.web.model.ClientListResponse;
 import com.example.rest.rest.web.model.ClientResponse;
 import com.example.rest.rest.web.model.OrderResponse;
 import com.example.rest.rest.web.model.UpsertClientRequest;
+import net.bytebuddy.utility.RandomString;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -138,5 +144,64 @@ public class ClientControllerTest extends AbstractTestController {
         mockMvc.perform(delete("/api/v1/client/1"))
                 .andExpect(status().isNoContent());
         Mockito.verify(clientService, Mockito.times(1)).deleteById(1L);
+    }
+
+    @Test
+    public void whenFindByIdExistedClient_thenReturnError() throws Exception {
+        Mockito.when(clientService.findById(500L)).thenThrow(new EntityNotFoundException("Клиент с ID 500 не найден"));
+
+        var response = mockMvc.perform(get("/api/v1/client/500"))
+                .andExpect(status().isNotFound())
+                .andReturn()
+                .getResponse();
+
+        response.setCharacterEncoding("UTF-8");
+
+        String actualResponse = response.getContentAsString();
+        String expectedResponse = StringTestUtils.readStringFromResource("response/client_by_id_not_found_response.json");
+
+        Mockito.verify(clientService, Mockito.times(1)).findById(500L);
+
+        JsonAssert.assertJsonEquals(expectedResponse, actualResponse);
+    }
+
+    @Test
+    public void whenCreateClientWithEmptyName_thenReturnError() throws Exception {
+        var response = mockMvc.perform(post("/api/v1/client")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new UpsertClientRequest())))
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse();
+        response.setCharacterEncoding("UTF-8");
+
+        String actualResponse = response.getContentAsString();
+        String expectedResponse = StringTestUtils.readStringFromResource("response/empty_client_name_response.json");
+
+        JsonAssert.assertJsonEquals(expectedResponse, actualResponse);
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidSizeName")
+    public void whenCreateClientWithInvalidSizeName_thenReturnError(String name) throws Exception {
+        var response = mockMvc.perform(post("/api/v1/client")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new UpsertClientRequest(name))))
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse();
+        response.setCharacterEncoding("UTF-8");
+
+        String actualResponse = response.getContentAsString();
+        String expectedResponse = StringTestUtils.readStringFromResource("response/client_name_size_exception_response.json");
+
+        JsonAssert.assertJsonEquals(expectedResponse, actualResponse);
+    }
+
+    private static Stream<Arguments> invalidSizeName() {
+        return Stream.of(
+                Arguments.of(RandomString.make(2)),
+                Arguments.of(RandomString.make(31))
+        );
     }
 }

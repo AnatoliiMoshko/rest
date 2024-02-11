@@ -1,8 +1,9 @@
-package com.example.rest.rest.service;
+package com.example.rest.rest.service.impl;
 
 import com.example.rest.rest.exception.EntityNotFoundException;
 import com.example.rest.rest.model.Client;
 import com.example.rest.rest.repository.DatabaseClientRepository;
+import com.example.rest.rest.service.ClientService;
 import com.example.rest.rest.utils.BeanUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

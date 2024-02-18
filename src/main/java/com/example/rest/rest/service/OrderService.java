@@ -2,12 +2,14 @@ package com.example.rest.rest.service;
 
 import com.example.rest.rest.exception.UpdateStateException;
 import com.example.rest.rest.model.Order;
+import com.example.rest.rest.web.model.OrderFilter;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
 public interface OrderService {
+     List<Order>  filterBy(OrderFilter filter);
      List<Order> findALL();
      Order findById(Long id);
      Order save(Order order);

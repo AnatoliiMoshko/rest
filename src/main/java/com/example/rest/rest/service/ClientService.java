@@ -1,6 +1,8 @@
 package com.example.rest.rest.service;
 
 import com.example.rest.rest.model.Client;
+import com.example.rest.rest.model.Order;
+import com.example.rest.rest.web.model.OrderRequest;
 
 import java.util.List;
 
@@ -10,4 +12,6 @@ public interface ClientService {
     Client save(Client client);
     Client update(Client client);
     void deleteById(Long id);
+
+    Client saveWithOrders(Client client, List<Order> orders);
 }
